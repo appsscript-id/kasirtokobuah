@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kebun Segar - Kasir Toko Buah</title>
+<title>Toko Buah Priyo - Kasir Toko Buah</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#FFFBF0;--card:#fff;--ink:#1E2B1E;--mut:#6B7A6B;--g:#2FA84F;--g2:#E3F6E7;--o:#FF9A1F;--o2:#FFF0DA;--r:#E5484D;--line:#EFE8D6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -144,9 +144,13 @@ header{flex-wrap:nowrap}
  main{padding:16px 16px calc(120px + env(safe-area-inset-bottom,0px))}
  .toast{bottom:calc(100px + env(safe-area-inset-bottom,0px))}
  .cart{position:static}
+ .top input{max-width:none;flex:1 1 100%}
  .fab{position:fixed;left:16px;right:16px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--o);color:#fff;font-weight:700;padding:13px 18px;border-radius:18px;box-shadow:0 10px 24px rgba(255,154,31,.4)}
  .fab span:last-child{font-size:13px;opacity:.95}
 }
+.tx{background:#fff;border:2px solid var(--line);border-radius:18px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:center}
+.tx .i{flex:1;font-size:14px}
+.tx small{color:var(--mut);display:block;font-size:12px}
 @media print{body>*:not(#modal){display:none!important}#modal{position:static;background:none;display:block}.rc{max-width:none;box-shadow:none}.rc button{display:none}}
 </style>
 </head>
@@ -156,7 +160,7 @@ header{flex-wrap:nowrap}
   <div class="art" aria-hidden="true">
     <span class="f f1">🥭</span><span class="f f2">🍉</span><span class="f f3">🍊</span><span class="f f4">🍓</span><span class="f f5">🍍</span>
     <div class="art-in">
-      <div class="mark">Kebun Segar</div>
+      <div class="mark">Toko Buah Priyo</div>
       <h1>Jual buah lebih cepat, stok selalu rapi.</h1>
       <p>Catat penjualan dengan sekali klik gambar buah.</p>
     </div>
@@ -182,7 +186,7 @@ header{flex-wrap:nowrap}
  
 <section id="app" class="hide">
   <header>
-    <div class="brand"><span class="tile">🍉</span>Kebun Segar</div>
+    <div class="brand"><span class="tile">🍉</span>Toko Buah Priyo</div>
     <nav id="nav"></nav>
     <span class="who" id="who"></span>
     <button class="out" onclick="logout()" aria-label="Keluar"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span>Keluar</span></button>
@@ -209,7 +213,7 @@ let token=null,user=null,role='pemilik',tab='kasir',pickE='',pickN='',fruits=[],
 const $=id=>document.getElementById(id);
 const fmt=n=>Number(n).toLocaleString('id-ID',{maximumFractionDigits:3});
 const r3=n=>Math.round(Number(n)*1000)/1000;
-const IC={kasir:'<path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/>',tambah:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',stok:'<path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/>',laporan:'<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',staf:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2 .7 3.5 2.6 3.5 5.5"/>'};
+const IC={riwayat:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',kasir:'<path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/>',tambah:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',stok:'<path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/>',laporan:'<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',staf:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2 .7 3.5 2.6 3.5 5.5"/>'};
 const svg=k=>`<svg viewBox="0 0 24 24">${IC[k]}</svg>`;
 const isImg=e=>String(e||'').startsWith('data:image');
 const ic=(e,n)=>isImg(e)?`<span class="ic"><img src="${esc(e)}" alt=""></span>`:e?`<span class="ic">${esc(e)}</span>`:`<span class="ic l"><i>${esc(String(n||'?').trim().charAt(0).toUpperCase()||'?')}</i></span>`;
@@ -220,6 +224,7 @@ function toast(t){const e=$('toast');e.textContent=t;e.classList.remove('hide');
 /* ====== LAPISAN DATA ====== */
 let DB=(()=>{try{const v=localStorage.getItem('kb_db');if(v)return JSON.parse(v)}catch(e){}
  return{fruits:DEF,sales:[],users:{pemilik:{pw:'owner123',peran:'pemilik',nama:'Pemilik'},karyawan:{pw:'staf123',peran:'karyawan',nama:'Karyawan'}}}})();
+const EDIT_MENIT=30;
 const persist=()=>{try{localStorage.setItem('kb_db',JSON.stringify(DB))}catch(e){}};
 function local(a,d){
  const u=DB.users;
@@ -230,11 +235,26 @@ function local(a,d){
  if(a==='sell'){let total=0;const items=[];
   for(const it of d.items){const f=DB.fruits.find(x=>x.id==it.id);
    const q=r3(it.q);if(!f||!(q>0)||f.s<q)return{ok:false,error:'Stok '+(f?f.n:'')+' tidak cukup'};
-   items.push({n:f.n,e:isImg(f.e)?'':f.e,q,p:f.p,f});total+=Math.round(q*f.p)}
+   items.push({n:f.n,e:isImg(f.e)?'':f.e,id:f.id,q,p:f.p,f});total+=Math.round(q*f.p)}
   if(d.bayar<total)return{ok:false,error:'Uang diterima kurang dari total'};
   items.forEach(i=>i.f.s=r3(i.f.s-i.q));
-  const sale={id:Date.now(),t:new Date().toISOString(),by:user.nama,items:items.map(({n,e,q,p})=>({n,e,q,p})),total,bayar:d.bayar};
+  const sale={id:Date.now(),t:new Date().toISOString(),by:user.nama,items:items.map(({n,e,q,p,id})=>({n,e,q,p,id})),total,bayar:d.bayar};
   DB.sales.push(sale);persist();return{ok:true,sale}}
+ if(a==='mySales')return{ok:true,editMenit:EDIT_MENIT,sales:DB.sales.filter(x=>x.by===user.nama&&Date.now()-new Date(x.t)<=864e5).slice(-50)};
+ if(a==='updateSale'||a==='deleteSale'){
+  const si=DB.sales.findIndex(x=>x.id==d.id);if(si<0)return{ok:false,error:'Transaksi tidak ditemukan'};
+  const sx=DB.sales[si];if(user.peran!=='pemilik'){if(sx.by!==user.nama)return{ok:false,error:'Anda hanya bisa mengubah transaksi sendiri.'};if((Date.now()-new Date(sx.t))/60000>EDIT_MENIT)return{ok:false,error:'Batas waktu edit '+EDIT_MENIT+' menit sudah lewat. Minta pemilik untuk mengubahnya.'}}
+  const sale=DB.sales[si],fb=it=>DB.fruits.find(f=>it.id?f.id==it.id:f.n===it.n),stock=new Map(),get=f=>stock.has(f)?stock.get(f):f.s;
+  sale.items.forEach(it=>{const f=fb(it);if(f)stock.set(f,get(f)+it.q)});
+  if(a==='deleteSale'){stock.forEach((v,f)=>f.s=r3(v));DB.sales.splice(si,1);persist();return{ok:true}}
+  const items=[];let total=0;
+  for(const it of d.items){const q=r3(it.q);if(!(q>0))continue;const f=fb(it),o=sale.items.find(x=>x.n===it.n),pr=o?o.p:f?f.p:null;
+   if(pr===null)return{ok:false,error:'Buah '+it.n+' tidak ada'};
+   if(f){const left=r3(get(f)-q);if(left<0)return{ok:false,error:'Stok '+it.n+' tidak cukup'};stock.set(f,left)}
+   items.push({n:it.n,e:o?o.e:(f&&!isImg(f.e)?f.e:''),q,p:pr,id:f?f.id:(o?o.id:undefined)});total+=Math.round(q*pr)}
+  if(!items.length)return{ok:false,error:'Transaksi harus berisi minimal satu buah (atau hapus transaksi)'};
+  const bayar=Number(d.bayar);if(!(bayar>=total))return{ok:false,error:'Uang diterima kurang dari total'};
+  stock.forEach((v,f)=>f.s=r3(v));sale.items=items;sale.total=total;sale.bayar=bayar;persist();return{ok:true}}
  if(a==='sales')return{ok:true,sales:DB.sales.slice(-300)};
  if(a==='users')return{ok:true,users:Object.entries(u).map(([k,v])=>({username:k,peran:v.peran,nama:v.nama}))};
  if(a==='addFruit')DB.fruits.push({id:Date.now(),n:d.n,e:d.e,p:d.p,s:d.s});
@@ -258,7 +278,7 @@ async function api(action,data={}){
  
 /* ====== LOGIN ====== */
 function setRole(r){role=r;$('rP').className=r==='pemilik'?'on':'';$('rK').className=r==='karyawan'?'on':'';$('u').value='';$('pw').value='';$('err').textContent=''}
-$('hint').innerHTML=API_URL?'Terhubung ke Google Sheets.':'<b>Mode demo</b> (data hanya di browser ini).<br>Pemilik: <b>pemilik</b> / <b>owner123</b><br>Karyawan: <b>karyawan</b> / <b>staf123</b>';
+if(API_URL)$('hint').classList.add('hide');else $('hint').innerHTML='<b>Mode demo</b> (data hanya di browser ini).<br>Pemilik: <b>pemilik</b> / <b>owner123</b><br>Karyawan: <b>karyawan</b> / <b>staf123</b>';
 async function doLogin(){
  const b=$('lb');b.disabled=true;b.textContent='Memeriksa…';
  const r=await api('login',{username:$('u').value,password:$('pw').value,peran:role});
@@ -271,12 +291,12 @@ async function doLogin(){
 function logout(){token=null;user=null;cart={};$('app').classList.add('hide');$('login').classList.remove('hide');setRole(role)}
 function nav(){
  const t=[['kasir','Kasir','']];
- if(user.peran==='pemilik')t.push(['tambah','Tambah',' Buah'],['stok','Stok',''],['laporan','Laporan',''],['staf','Karyawan','']);
+ if(user.peran==='pemilik')t.push(['tambah','Tambah',' Buah'],['stok','Stok',''],['laporan','Laporan',''],['staf','Karyawan','']);else t.push(['riwayat','Riwayat','']);
  $('nav').classList.toggle('hide',t.length<2);
  $('nav').innerHTML=t.map(([k,l,x])=>`<button class="${tab===k?'on':''}" onclick="go('${k}')">${svg(k)}<span>${l}<em>${x}</em></span></button>`).join('');
 }
 function go(t){tab=t;render()}
-function render(){nav();$('main').innerHTML='<p class="empty">Memuat…</p>';({kasir,tambah,stok,laporan,staf})[tab]()}
+function render(){nav();$('main').innerHTML='<p class="empty">Memuat…</p>';({kasir,tambah,stok,laporan,staf,riwayat})[tab]()}
  
 /* ====== KASIR ====== */
 async function kasir(){
@@ -328,7 +348,7 @@ async function pay(){
  cart={};receipt(r.sale);kasir();
 }
 function receipt(s){
- $('modal').innerHTML=`<div class="rc"><h3>🍉 Kebun Segar</h3><p style="text-align:center;color:var(--mut);font-size:12px;margin:0 0 12px">${new Date(s.t).toLocaleString('id-ID')} · ${esc(s.by)}</p>`+
+ $('modal').innerHTML=`<div class="rc"><h3>🍉 Toko Buah Priyo</h3><p style="text-align:center;color:var(--mut);font-size:12px;margin:0 0 12px">${new Date(s.t).toLocaleString('id-ID')} · ${esc(s.by)}</p>`+
  s.items.map(i=>`<div class="l"><span>${ic(i.e,i.n)} ${esc(i.n)} ${fmt(i.q)} kg</span><span>${rp(Math.round(i.q*i.p))}</span></div>`).join('')+
  `<hr style="border:0;border-top:1px dashed var(--line)"><div class="l"><b>Total</b><b>${rp(s.total)}</b></div><div class="l"><span>Diterima</span><span>${rp(s.bayar)}</span></div><div class="l"><span>Kembalian</span><span>${rp(s.bayar-s.total)}</span></div><p style="text-align:center;font-size:12px;color:var(--mut)">Terima kasih, selamat menikmati!</p><button class="btn" onclick="window.print()">Cetak struk</button><button class="btn soft" onclick="closeM()">Selesai</button></div>`;
  $('modal').classList.remove('hide');
@@ -394,7 +414,7 @@ async function saveImg(id){const r=await api('updateFruit',{id,e:pickE});closeM(
 /* ====== LAPORAN ====== */
 async function laporan(){
  const r=await api('sales');if(!r.ok){toast(r.error);return}
- const sales=r.sales,sum=a=>a.reduce((x,s)=>x+s.total,0),ds=d=>new Date(d).toDateString();
+ const sales=SALES=r.sales,sum=a=>a.reduce((x,s)=>x+s.total,0),ds=d=>new Date(d).toDateString();
  const ts=sales.filter(s=>ds(s.t)===ds(new Date()));
  const cnt={};sales.forEach(s=>s.items.forEach(i=>{const k=(i.e?i.e+' ':'')+i.n;cnt[k]=(cnt[k]||0)+i.q}));
  const best=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
@@ -406,8 +426,46 @@ async function laporan(){
  <div class="stat"><span>Total pendapatan</span><b>${rp(sum(sales))}</b></div>
  <div class="stat"><span>Buah terlaris</span><b>${best?esc(best[0]):'-'}</b></div></div>
  <h2>7 hari terakhir</h2><div class="chart">${days.map(d=>`<div title="${rp(d.v)}"><i style="height:${Math.round(d.v/mx*100)}%"></i>${d.l}</div>`).join('')}</div>
- <h2>Riwayat transaksi</h2><div class="wrap"><table><tr><th>Waktu</th><th>Kasir</th><th>Item</th><th>Total</th></tr>`+
- (sales.length?[...sales].reverse().slice(0,50).map(s=>`<tr><td>${new Date(s.t).toLocaleString('id-ID')}</td><td>${esc(s.by)}</td><td>${esc(s.items.map(i=>(i.e||i.n)+' '+fmt(i.q)+'kg').join(', '))}</td><td><b>${rp(s.total)}</b></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Belum ada penjualan.</td></tr>')+`</table></div>`;
+ <h2>Riwayat transaksi</h2><div class="wrap"><table><tr><th>Waktu</th><th>Kasir</th><th>Item</th><th>Total</th><th></th></tr>`+
+ (sales.length?[...sales].reverse().slice(0,50).map(s=>`<tr><td>${new Date(s.t).toLocaleString('id-ID')}</td><td>${esc(s.by)}</td><td>${esc(s.items.map(i=>(i.e||i.n)+' '+fmt(i.q)+'kg').join(', '))}</td><td><b>${rp(s.total)}</b></td><td><button class="ok" onclick="editSale(${s.id})">Edit</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">Belum ada penjualan.</td></tr>')+`</table></div>`;
+}
+ 
+/* ====== EDIT TRANSAKSI ====== */
+let SALES=[],ED=null;
+const edTotal=()=>ED.items.reduce((t,i)=>t+Math.round(i.q*i.p),0);
+async function editSale(id){
+ const s=SALES.find(x=>x.id==id);if(!s)return;
+ const r=await api('fruits');if(r.ok)fruits=r.fruits;
+ ED={id:s.id,t:s.t,by:s.by,bayar:s.bayar,items:s.items.map(i=>({...i}))};edUI();
+}
+function edUI(){
+ const opts=fruits.filter(f=>!ED.items.some(i=>i.n===f.n));
+ $('modal').innerHTML=`<div class="rc" style="max-width:420px"><h3>Edit transaksi</h3><p style="text-align:center;color:var(--mut);font-size:12px;margin:0 0 10px">${new Date(ED.t).toLocaleString('id-ID')} · ${esc(ED.by)}</p>`+
+ ED.items.map((i,k)=>`<div class="row"><span class="e">${ic(i.e,i.n)}</span><div class="n">${esc(i.n)}<small>${rp(i.p)}/kg = ${rp(Math.round(i.q*i.p))}</small></div><div class="q"><input class="wi" type="number" step="0.001" min="0" inputmode="decimal" value="${i.q}" onchange="edQ(${k},this.value)" aria-label="Berat ${esc(i.n)} (kg)"><span>kg</span><button onclick="edQ(${k},0)" aria-label="Hapus ${esc(i.n)}">×</button></div></div>`).join('')+
+ (opts.length?`<label for="ea">Tambah buah</label><div style="display:flex;gap:8px"><select id="ea">${opts.map(f=>`<option value="${f.id}">${esc(f.n)}</option>`).join('')}</select><button class="ok" onclick="edAdd()">Tambah</button></div>`:'')+
+ `<div class="tot"><span>Total</span><span>${rp(edTotal())}</span></div><label for="eb">Uang diterima</label><input id="eb" type="number" min="0" inputmode="numeric" value="${ED.bayar}"><button class="btn" onclick="saveEd()">Simpan perubahan</button><button class="btn soft" onclick="closeM()">Batal</button><button class="btn" style="background:#FDE5E6;color:var(--r)" onclick="delEd()">Hapus transaksi</button></div>`;
+ $('modal').classList.remove('hide');
+}
+function edQ(k,v){const w=r3(v);if(isNaN(w))return;ED.bayar=+$('eb').value;if(w>0)ED.items[k].q=w;else ED.items.splice(k,1);edUI()}
+function edAdd(){const f=fr($('ea').value);if(!f)return;ED.bayar=+$('eb').value;ED.items.push({n:f.n,e:isImg(f.e)?'':f.e,q:1,p:f.p,id:f.id});edUI()}
+async function saveEd(){
+ const r=await api('updateSale',{id:ED.id,items:ED.items.map(({n,q,id})=>({n,q,id})),bayar:+$('eb').value});
+ if(!r.ok){toast(r.error);return}
+ closeM();toast('Transaksi diperbarui');reload();
+}
+async function delEd(){
+ if(!confirm('Hapus transaksi ini? Stok buah akan dikembalikan.'))return;
+ const r=await api('deleteSale',{id:ED.id});
+ if(!r.ok){toast(r.error);return}
+ closeM();toast('Transaksi dihapus');reload();
+}
+ 
+const reload=()=>tab==='riwayat'?riwayat():laporan();
+async function riwayat(){
+ const r=await api('mySales');if(!r.ok){toast(r.error);return}
+ SALES=r.sales;const now=Date.now();
+ $('main').innerHTML=`<h2>Riwayat penjualan saya</h2><p style="color:var(--mut);font-size:14px;margin:-6px 0 14px">Salah input? Transaksi bisa diedit sampai ${r.editMenit} menit setelah dibuat. Setelah itu, minta pemilik yang mengubahnya.</p>`+
+ (SALES.length?[...SALES].reverse().map(s=>{const ok=now-new Date(s.t)<=r.editMenit*60000;return `<div class="tx"><div class="i"><b>${rp(s.total)}</b><small>${new Date(s.t).toLocaleString('id-ID')}</small><small>${esc(s.items.map(i=>(i.e||i.n)+' '+fmt(i.q)+'kg').join(', '))}</small></div>${ok?`<button class="ok" onclick="editSale(${s.id})">Edit</button>`:'<small>Lewat batas edit</small>'}</div>`}).join(''):'<p class="empty">Belum ada penjualan dalam 24 jam terakhir.</p>');
 }
  
 /* ====== KARYAWAN ====== */
