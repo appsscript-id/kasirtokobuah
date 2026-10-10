@@ -152,6 +152,22 @@ header{flex-wrap:nowrap}
 .tx{background:#fff;border:2px solid var(--line);border-radius:18px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:center}
 .tx .i{flex:1;font-size:14px}
 .tx small{color:var(--mut);display:block;font-size:12px}
+
+/* ====== DIALOG KONFIRMASI KUSTOM (pengganti confirm) ====== */
+.dlg{position:fixed;inset:0;z-index:60;background:rgba(30,43,30,.55);display:none;place-items:center;padding:20px}
+.dlg.show{display:grid;animation:dlgFade .15s ease-out}
+.dlg-box{background:#fff;width:100%;max-width:340px;border-radius:24px;padding:24px;box-shadow:0 20px 50px rgba(30,43,30,.3);animation:dlgPop .18s ease-out}
+.dlg-box h3{margin:0 0 8px;font-size:18px;font-weight:800;color:var(--ink)}
+.dlg-box p{margin:0 0 20px;font-size:15px;line-height:1.5;color:var(--mut)}
+.dlg-act{display:flex;gap:10px}
+.dlg-act button{flex:1;padding:13px;border-radius:14px;font-weight:700}
+.dlg-no{background:var(--o2);color:#b86500}
+.dlg-yes{background:var(--g);color:#fff}
+.dlg-yes.bahaya{background:var(--r)}
+@keyframes dlgFade{from{opacity:0}to{opacity:1}}
+@keyframes dlgPop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.dlg.show,.dlg-box{animation:none}}
+
 @media print{body>*:not(#modal){display:none!important}#modal{position:static;background:none;display:block}.rc{max-width:none;box-shadow:none}.rc button{display:none}}
 </style>
 </head>
@@ -198,6 +214,18 @@ header{flex-wrap:nowrap}
 <div id="toast" class="toast hide" role="status"></div>
 <div id="modal" class="modal hide" onclick="if(event.target===this)closeM()"></div>
 
+<!-- Dialog konfirmasi kustom -->
+<div id="dlg" class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlgJ" aria-describedby="dlgP">
+  <div class="dlg-box">
+    <h3 id="dlgJ"></h3>
+    <p id="dlgP"></p>
+    <div class="dlg-act">
+      <button id="dlgNo" class="dlg-no" type="button">Batal</button>
+      <button id="dlgYes" class="dlg-yes" type="button">Oke</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ====== PENGATURAN ======
    Kosongkan API_URL untuk mode demo (data tersimpan di browser).
@@ -223,6 +251,28 @@ function fm(el){const n=num(el.value);el.value=n?n.toLocaleString('id-ID'):''}
 const rp=n=>'Rp '+Math.round(n).toLocaleString('id-ID');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(t){const e=$('toast');e.textContent=t;e.classList.remove('hide');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.add('hide'),2200)}
+
+/* ====== DIALOG KONFIRMASI KUSTOM ======
+   Pengganti confirm(): tanpa tulisan "... menyatakan".
+   Pemakaian: if(await konfirmasi('Pesan', {judul:'Judul', ya:'Hapus', bahaya:true})) {...} */
+function konfirmasi(pesan,opsi={}){
+ return new Promise(resolve=>{
+  const d=$('dlg'),yes=$('dlgYes'),no=$('dlgNo');
+  $('dlgJ').textContent=opsi.judul||'Konfirmasi';
+  $('dlgP').textContent=pesan;
+  yes.textContent=opsi.ya||'Oke';
+  no.textContent=opsi.batal||'Batal';
+  yes.classList.toggle('bahaya',!!opsi.bahaya);
+  const tutup=h=>{d.classList.remove('show');document.removeEventListener('keydown',onKey);resolve(h)};
+  const onKey=e=>{if(e.key==='Escape')tutup(false)};
+  yes.onclick=()=>tutup(true);
+  no.onclick=()=>tutup(false);
+  d.onclick=e=>{if(e.target===d)tutup(false)};
+  document.addEventListener('keydown',onKey);
+  d.classList.add('show');
+  no.focus();
+ });
+}
 
 /* ====== LAPISAN DATA ====== */
 let DB=(()=>{try{const v=localStorage.getItem('kb_db');if(v)return JSON.parse(v)}catch(e){}
@@ -409,7 +459,11 @@ async function upd(id){
  if(!(p>0)||s<0){toast('Harga atau stok tidak valid');return}
  const r=await api('updateFruit',{id,p,s});toast(r.ok?'Tersimpan':r.error);if(r.ok)stok();
 }
-async function delF(id){const f=fr(id);if(!confirm('Hapus '+f.n+'?'))return;const r=await api('deleteFruit',{id});toast(r.ok?f.n+' dihapus':r.error);stok()}
+async function delF(id){
+ const f=fr(id);
+ if(!await konfirmasi('Hapus '+f.n+'?',{judul:'Hapus buah',ya:'Hapus',bahaya:true}))return;
+ const r=await api('deleteFruit',{id});toast(r.ok?f.n+' dihapus':r.error);stok();
+}
 
 function editImg(id){
  const f=fr(id);pickE=f.e||'';pickN=f.n;
@@ -461,7 +515,7 @@ async function saveEd(){
  closeM();toast('Transaksi diperbarui');reload();
 }
 async function delEd(){
- if(!confirm('Hapus transaksi ini? Stok buah akan dikembalikan.'))return;
+ if(!await konfirmasi('Hapus transaksi ini? Stok buah akan dikembalikan.',{judul:'Hapus transaksi',ya:'Hapus',bahaya:true}))return;
  const r=await api('deleteSale',{id:ED.id});
  if(!r.ok){toast(r.error);return}
  closeM();toast('Transaksi dihapus');reload();
@@ -512,7 +566,10 @@ function pwStaf(username){
  $('modal').classList.remove('hide');$('np').focus();
 }
 async function savePw(username){const r=await api('resetPassword',{username,password:$('np').value});if(!r.ok){toast(r.error);return}closeM();toast('Sandi diganti')}
-async function delStaf(username){if(!confirm('Hapus akun '+username+'?'))return;const r=await api('deleteUser',{username});toast(r.ok?'Akun dihapus':r.error);staf()}
+async function delStaf(username){
+ if(!await konfirmasi('Hapus akun '+username+'?',{judul:'Hapus akun',ya:'Hapus',bahaya:true}))return;
+ const r=await api('deleteUser',{username});toast(r.ok?'Akun dihapus':r.error);staf();
+}
 </script>
 </body>
 </html>
