@@ -118,11 +118,40 @@ td input{padding:8px 10px}
 .ic.l i{font-style:normal;font-weight:800;font-size:.55em}
 .prev{font-size:56px;margin:4px 0 10px}
 .emo button.none{font-size:13px;font-weight:600;color:var(--mut)}
+nav button{display:flex;align-items:center;gap:8px}
+nav svg,.out svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+nav em{font-style:normal}
+header{flex-wrap:nowrap}
+.brand{display:flex;align-items:center;gap:10px}
+.tile{width:36px;height:36px;border-radius:12px;background:var(--g2);display:grid;place-items:center;font-size:20px}
+.who{display:flex;align-items:center;gap:8px}
+.av{width:34px;height:34px;border-radius:50%;background:var(--g);color:#fff;display:inline-grid;place-items:center;font-weight:800;font-size:14px}
+.out{display:flex;align-items:center;gap:6px}
+.wi{width:84px;padding:6px 8px;text-align:right;border-radius:10px}
+.q span{font-size:13px;color:var(--mut)}
+.chips{display:flex;gap:6px;margin:10px 0}
+.chips button{flex:1;padding:10px 4px;border-radius:12px;background:var(--g2);color:#1d7a37;font-weight:700}
+#wt{font-size:28px;font-weight:800;height:62px;text-align:center}
+.fab{display:none}
+@media(max-width:860px){
+ header{padding:10px 16px}
+ .brand{font-size:18px}
+ .wn,.out span{display:none}
+ .out{padding:9px}
+ nav{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:24px;padding:6px;box-shadow:0 10px 30px rgba(30,43,30,.18);gap:2px;z-index:20;flex-wrap:nowrap}
+ nav button{flex:1;flex-direction:column;gap:3px;padding:8px 2px;font-size:11px;border-radius:18px}
+ nav em{display:none}
+ main{padding:16px 16px calc(120px + env(safe-area-inset-bottom,0px))}
+ .toast{bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+ .cart{position:static}
+ .fab{position:fixed;left:16px;right:16px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--o);color:#fff;font-weight:700;padding:13px 18px;border-radius:18px;box-shadow:0 10px 24px rgba(255,154,31,.4)}
+ .fab span:last-child{font-size:13px;opacity:.95}
+}
 @media print{body>*:not(#modal){display:none!important}#modal{position:static;background:none;display:block}.rc{max-width:none;box-shadow:none}.rc button{display:none}}
 </style>
 </head>
 <body>
-
+ 
 <section id="login">
   <div class="art" aria-hidden="true">
     <span class="f f1">🥭</span><span class="f f2">🍉</span><span class="f f3">🍊</span><span class="f f4">🍓</span><span class="f f5">🍍</span>
@@ -150,26 +179,26 @@ td input{padding:8px 10px}
     </div>
   </div>
 </section>
-
+ 
 <section id="app" class="hide">
   <header>
-    <div class="brand">🍉 Kebun Segar</div>
+    <div class="brand"><span class="tile">🍉</span>Kebun Segar</div>
     <nav id="nav"></nav>
     <span class="who" id="who"></span>
-    <button class="out" onclick="logout()">Keluar</button>
+    <button class="out" onclick="logout()" aria-label="Keluar"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span>Keluar</span></button>
   </header>
   <main id="main"></main>
 </section>
-
+ 
 <div id="toast" class="toast hide" role="status"></div>
 <div id="modal" class="modal hide" onclick="if(event.target===this)closeM()"></div>
-
+ 
 <script>
 /* ====== PENGATURAN ======
    Kosongkan API_URL untuk mode demo (data tersimpan di browser).
    Isi dengan URL Web App Google Apps Script agar data tersimpan di Google Sheets. */
-const API_URL='https://script.google.com/macros/s/AKfycbx1MTP25nqbO1VRa3q-R3J17qiLO6ZTM1cXCFU5BDwpWaIpqie3eExXFYjYWLa_HJMt/exec';
-
+const API_URL='';
+ 
 const DEF=[
  {id:1,n:'Mangga',e:'🥭',p:25000,s:40},{id:2,n:'Apel',e:'🍎',p:30000,s:35},{id:3,n:'Pisang',e:'🍌',p:15000,s:50},
  {id:4,n:'Jeruk',e:'🍊',p:20000,s:45},{id:5,n:'Semangka',e:'🍉',p:10000,s:60},{id:6,n:'Anggur',e:'🍇',p:55000,s:20},
@@ -178,12 +207,16 @@ const EMOJIS=['🥭','🍎','🍏','🍌','🍊','🍉','🍇','🍍','🍓','�
 const LOW=10;
 let token=null,user=null,role='pemilik',tab='kasir',pickE='',pickN='',fruits=[],cart={},query='',busy=false;
 const $=id=>document.getElementById(id);
+const fmt=n=>Number(n).toLocaleString('id-ID',{maximumFractionDigits:3});
+const r3=n=>Math.round(Number(n)*1000)/1000;
+const IC={kasir:'<path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/>',tambah:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',stok:'<path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/>',laporan:'<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',staf:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2 .7 3.5 2.6 3.5 5.5"/>'};
+const svg=k=>`<svg viewBox="0 0 24 24">${IC[k]}</svg>`;
 const isImg=e=>String(e||'').startsWith('data:image');
 const ic=(e,n)=>isImg(e)?`<span class="ic"><img src="${esc(e)}" alt=""></span>`:e?`<span class="ic">${esc(e)}</span>`:`<span class="ic l"><i>${esc(String(n||'?').trim().charAt(0).toUpperCase()||'?')}</i></span>`;
 const rp=n=>'Rp '+Math.round(n).toLocaleString('id-ID');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(t){const e=$('toast');e.textContent=t;e.classList.remove('hide');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.add('hide'),2200)}
-
+ 
 /* ====== LAPISAN DATA ====== */
 let DB=(()=>{try{const v=localStorage.getItem('kb_db');if(v)return JSON.parse(v)}catch(e){}
  return{fruits:DEF,sales:[],users:{pemilik:{pw:'owner123',peran:'pemilik',nama:'Pemilik'},karyawan:{pw:'staf123',peran:'karyawan',nama:'Karyawan'}}}})();
@@ -196,10 +229,10 @@ function local(a,d){
  if(a==='fruits')return{ok:true,fruits:DB.fruits};
  if(a==='sell'){let total=0;const items=[];
   for(const it of d.items){const f=DB.fruits.find(x=>x.id==it.id);
-   if(!f||f.s<it.q)return{ok:false,error:'Stok '+(f?f.n:'')+' tidak cukup'};
-   items.push({n:f.n,e:isImg(f.e)?'':f.e,q:it.q,p:f.p,f});total+=it.q*f.p}
+   const q=r3(it.q);if(!f||!(q>0)||f.s<q)return{ok:false,error:'Stok '+(f?f.n:'')+' tidak cukup'};
+   items.push({n:f.n,e:isImg(f.e)?'':f.e,q,p:f.p,f});total+=Math.round(q*f.p)}
   if(d.bayar<total)return{ok:false,error:'Uang diterima kurang dari total'};
-  items.forEach(i=>i.f.s-=i.q);
+  items.forEach(i=>i.f.s=r3(i.f.s-i.q));
   const sale={id:Date.now(),t:new Date().toISOString(),by:user.nama,items:items.map(({n,e,q,p})=>({n,e,q,p})),total,bayar:d.bayar};
   DB.sales.push(sale);persist();return{ok:true,sale}}
  if(a==='sales')return{ok:true,sales:DB.sales.slice(-300)};
@@ -222,7 +255,7 @@ async function api(action,data={}){
   const j=await r.json();if(j.expired){logout();toast(j.error)}return j;
  }catch(e){return{ok:false,error:'Tidak bisa terhubung ke server. Periksa internet dan API_URL.'}}
 }
-
+ 
 /* ====== LOGIN ====== */
 function setRole(r){role=r;$('rP').className=r==='pemilik'?'on':'';$('rK').className=r==='karyawan'?'on':'';$('u').value='';$('pw').value='';$('err').textContent=''}
 $('hint').innerHTML=API_URL?'Terhubung ke Google Sheets.':'<b>Mode demo</b> (data hanya di browser ini).<br>Pemilik: <b>pemilik</b> / <b>owner123</b><br>Karyawan: <b>karyawan</b> / <b>staf123</b>';
@@ -233,39 +266,57 @@ async function doLogin(){
  if(!r.ok){$('err').textContent=r.error;return}
  token=r.token;user={nama:r.nama,peran:r.peran};tab='kasir';cart={};
  $('login').classList.add('hide');$('app').classList.remove('hide');
- $('who').innerHTML=esc(r.nama)+' <span class="mode">'+(API_URL?'Online':'Demo')+'</span>';render();
+ $('who').innerHTML='<span class="av">'+esc(r.nama.charAt(0).toUpperCase())+'</span><span class="wn">'+esc(r.nama)+' <span class="mode">'+(API_URL?'Online':'Demo')+'</span></span>';render();
 }
 function logout(){token=null;user=null;cart={};$('app').classList.add('hide');$('login').classList.remove('hide');setRole(role)}
 function nav(){
- const t=[['kasir','🛒 Kasir']];
- if(user.peran==='pemilik')t.push(['tambah','➕ Tambah Buah'],['stok','📦 Stok'],['laporan','📊 Laporan'],['staf','🧑‍🌾 Karyawan']);
- $('nav').innerHTML=t.map(([k,l])=>`<button class="${tab===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('');
+ const t=[['kasir','Kasir','']];
+ if(user.peran==='pemilik')t.push(['tambah','Tambah',' Buah'],['stok','Stok',''],['laporan','Laporan',''],['staf','Karyawan','']);
+ $('nav').classList.toggle('hide',t.length<2);
+ $('nav').innerHTML=t.map(([k,l,x])=>`<button class="${tab===k?'on':''}" onclick="go('${k}')">${svg(k)}<span>${l}<em>${x}</em></span></button>`).join('');
 }
 function go(t){tab=t;render()}
 function render(){nav();$('main').innerHTML='<p class="empty">Memuat…</p>';({kasir,tambah,stok,laporan,staf})[tab]()}
-
+ 
 /* ====== KASIR ====== */
 async function kasir(){
  const r=await api('fruits');if(!r.ok){toast(r.error);return}
  fruits=r.fruits;
- $('main').innerHTML=`<div class="pos"><div><div class="top"><h2>Klik gambar buah untuk menjual</h2><input id="sr" type="search" placeholder="Cari buah…" aria-label="Cari buah" oninput="query=this.value;grid()" value="${esc(query)}"></div><div class="grid" id="gr"></div></div><aside class="cart"><h2>Keranjang</h2><div id="cl"></div></aside></div>`;
+ $('main').innerHTML=`<div class="pos"><div><div class="top"><h2>Klik gambar buah untuk menjual</h2><input id="sr" type="search" placeholder="Cari buah…" aria-label="Cari buah" oninput="query=this.value;grid()" value="${esc(query)}"></div><div class="grid" id="gr"></div></div><button class="fab hide" id="fab" onclick="$('cl').scrollIntoView({behavior:'smooth'})"></button><aside class="cart"><h2>Keranjang</h2><div id="cl"></div></aside></div>`;
  grid();cartUI();
 }
 function grid(){
  const l=fruits.filter(f=>f.n.toLowerCase().includes(query.toLowerCase()));
  $('gr').innerHTML=l.length?l.map(f=>{const c=cart[f.id]||0;
-  return `<button class="fruit ${f.s<=0?'out0':f.s<=LOW?'low':''}" onclick="add(${f.id})" aria-label="Jual ${esc(f.n)}">${c?`<span class="badge">${c} kg</span>`:''}<div class="e">${ic(f.e,f.n)}</div><b>${esc(f.n)}</b><span class="p">${rp(f.p)}/kg</span><small>${f.s>0?'Stok '+f.s+' kg'+(f.s<=LOW?' (menipis)':''):'Habis'}</small></button>`}).join(''):'<p class="empty">Buah tidak ditemukan.</p>';
+  return `<button class="fruit ${f.s<=0?'out0':f.s<=LOW?'low':''}" onclick="weigh(${f.id})" aria-label="Jual ${esc(f.n)}">${c?`<span class="badge">${fmt(c)} kg</span>`:''}<div class="e">${ic(f.e,f.n)}</div><b>${esc(f.n)}</b><span class="p">${rp(f.p)}/kg</span><small>${f.s>0?'Stok '+fmt(f.s)+' kg'+(f.s<=LOW?' (menipis)':''):'Habis'}</small></button>`}).join(''):'<p class="empty">Buah tidak ditemukan.</p>';
 }
 const fr=id=>fruits.find(f=>f.id==id);
-function add(id){const f=fr(id),c=cart[id]||0;if(c+1>f.s){toast('Stok '+f.n+' tidak cukup');return}cart[id]=c+1;grid();cartUI()}
-function chg(id,d){const f=fr(id),q=(cart[id]||0)+d;if(q>f.s){toast('Stok tidak cukup');return}if(q<=0)delete cart[id];else cart[id]=q;grid();cartUI()}
-function total(){return Object.entries(cart).reduce((s,[id,q])=>s+q*fr(id).p,0)}
+function weigh(id){
+ const f=fr(id);
+ $('modal').innerHTML=`<div class="rc"><div style="text-align:center;font-size:64px">${ic(f.e,f.n)}</div><h3>${esc(f.n)}</h3><p style="text-align:center;margin:0 0 6px;color:var(--mut);font-size:14px">${rp(f.p)}/kg · stok ${fmt(f.s)} kg</p>
+ <label for="wt">Berat timbangan (kg)</label><input id="wt" type="number" step="0.001" min="0" inputmode="decimal" placeholder="0,00" oninput="wtUI(${id})" onkeydown="if(event.key==='Enter')addW(${id})">
+ <div class="chips">${[0.25,0.5,1,2].map(v=>`<button onclick="$('wt').value=${v};wtUI(${id})">${fmt(v)} kg</button>`).join('')}</div>
+ <div class="tot"><span>Harga</span><span id="wp">Rp 0</span></div>
+ <button class="btn" onclick="addW(${id})">Masukkan ke keranjang</button><button class="btn soft" onclick="closeM()">Batal</button></div>`;
+ $('modal').classList.remove('hide');$('wt').focus();
+}
+function wtUI(id){$('wp').textContent=rp(Math.round(r3($('wt').value)*fr(id).p))}
+function addW(id){
+ const f=fr(id),w=r3($('wt').value);
+ if(!(w>0)){toast('Masukkan berat timbangan');return}
+ const t=r3((cart[id]||0)+w);
+ if(t>f.s){toast('Stok '+f.n+' hanya '+fmt(f.s)+' kg');return}
+ cart[id]=t;closeM();grid();cartUI();
+}
+function setW(id,v){const f=fr(id),w=r3(v);if(!(w>0))delete cart[id];else if(w>f.s)toast('Stok '+f.n+' hanya '+fmt(f.s)+' kg');else cart[id]=w;grid();cartUI()}
+function total(){return Object.entries(cart).reduce((s,[id,q])=>s+Math.round(q*fr(id).p),0)}
 function clearCart(){cart={};grid();cartUI()}
 function cartUI(){
- const ids=Object.keys(cart).filter(id=>fr(id)),el=$('cl');if(!el)return;
- if(!ids.length){el.innerHTML='<div class="empty">Belum ada buah.<br>Klik gambar buah untuk menambah.</div>';return}
- el.innerHTML=ids.map(id=>{const f=fr(id),q=cart[id];return `<div class="row"><span class="e">${ic(f.e,f.n)}</span><div class="n">${esc(f.n)}<small>${q} kg × ${rp(f.p)} = ${rp(f.p*q)}</small></div><div class="q"><button onclick="chg(${id},-1)" aria-label="Kurangi ${esc(f.n)}">−</button><b>${q}</b><button onclick="chg(${id},1)" aria-label="Tambah ${esc(f.n)}">+</button></div></div>`}).join('')+
+ const ids=Object.keys(cart).filter(id=>fr(id)),el=$('cl'),fab=$('fab');if(!el)return;
+ if(!ids.length){el.innerHTML='<div class="empty">Belum ada buah.<br>Klik gambar buah, lalu masukkan berat timbangan.</div>';if(fab)fab.classList.add('hide');return}
+ el.innerHTML=ids.map(id=>{const f=fr(id),q=cart[id];return `<div class="row"><span class="e">${ic(f.e,f.n)}</span><div class="n">${esc(f.n)}<small>${rp(f.p)}/kg = ${rp(Math.round(q*f.p))}</small></div><div class="q"><input class="wi" type="number" step="0.001" min="0" inputmode="decimal" value="${q}" onchange="setW(${id},this.value)" aria-label="Berat ${esc(f.n)} (kg)"><span>kg</span><button onclick="setW(${id},0)" aria-label="Hapus ${esc(f.n)}">×</button></div></div>`}).join('')+
  `<div class="tot"><span>Total</span><span>${rp(total())}</span></div><label for="bayar">Uang diterima</label><input id="bayar" type="number" min="0" inputmode="numeric" placeholder="0"><button class="btn" id="pb" onclick="pay()">Bayar</button><button class="btn soft" onclick="clearCart()">Kosongkan</button>`;
+ if(fab){fab.classList.remove('hide');fab.innerHTML=`<span>${ids.length} jenis buah</span><b>${rp(total())}</b><span>Lihat keranjang</span>`}
 }
 async function pay(){
  if(busy)return;const t=total(),b=+$('bayar').value;
@@ -278,12 +329,12 @@ async function pay(){
 }
 function receipt(s){
  $('modal').innerHTML=`<div class="rc"><h3>🍉 Kebun Segar</h3><p style="text-align:center;color:var(--mut);font-size:12px;margin:0 0 12px">${new Date(s.t).toLocaleString('id-ID')} · ${esc(s.by)}</p>`+
- s.items.map(i=>`<div class="l"><span>${ic(i.e,i.n)} ${esc(i.n)} ${i.q} kg</span><span>${rp(i.q*i.p)}</span></div>`).join('')+
+ s.items.map(i=>`<div class="l"><span>${ic(i.e,i.n)} ${esc(i.n)} ${fmt(i.q)} kg</span><span>${rp(Math.round(i.q*i.p))}</span></div>`).join('')+
  `<hr style="border:0;border-top:1px dashed var(--line)"><div class="l"><b>Total</b><b>${rp(s.total)}</b></div><div class="l"><span>Diterima</span><span>${rp(s.bayar)}</span></div><div class="l"><span>Kembalian</span><span>${rp(s.bayar-s.total)}</span></div><p style="text-align:center;font-size:12px;color:var(--mut)">Terima kasih, selamat menikmati!</p><button class="btn" onclick="window.print()">Cetak struk</button><button class="btn soft" onclick="closeM()">Selesai</button></div>`;
  $('modal').classList.remove('hide');
 }
 function closeM(){$('modal').classList.add('hide')}
-
+ 
 /* ====== TAMBAH BUAH ====== */
 function picker(){return `<label>Gambar buah</label><div class="prev" id="prev"></div><div class="emo" id="emo"></div>
  <div class="two"><div><label for="ce">Atau ketik emoji sendiri</label><input id="ce" placeholder="🥭" maxlength="4" oninput="if(this.value.trim()){pickE=this.value.trim();emoUI()}"></div>
@@ -293,7 +344,7 @@ function tambah(){
  pickE='';pickN='';
  $('main').innerHTML=`<h2>Tambah buah baru</h2><div class="form"><label for="fn">Nama buah</label><input id="fn" placeholder="Contoh: Durian" oninput="emoUI()">
  ${picker()}
- <div class="two"><div><label for="fp">Harga per kg (Rp)</label><input id="fp" type="number" min="1" inputmode="numeric"></div><div><label for="fs">Stok awal (kg)</label><input id="fs" type="number" min="0" inputmode="numeric"></div></div>
+ <div class="two"><div><label for="fp">Harga per kg (Rp)</label><input id="fp" type="number" min="1" inputmode="numeric"></div><div><label for="fs">Stok awal (kg)</label><input id="fs" type="number" step="any" min="0" inputmode="numeric"></div></div>
  <button class="btn" onclick="saveFruit()">Simpan buah</button></div>`;
  emoUI();
 }
@@ -319,12 +370,12 @@ async function saveFruit(){
  if(!r.ok){toast(r.error);return}
  toast(n+' ditambahkan');tab='kasir';render();
 }
-
+ 
 /* ====== STOK ====== */
 async function stok(){
  const r=await api('fruits');if(!r.ok){toast(r.error);return}fruits=r.fruits;
  $('main').innerHTML=`<h2>Stok & harga</h2><div class="wrap"><table><tr><th>Buah</th><th>Harga/kg</th><th>Stok (kg)</th><th></th></tr>`+
- fruits.map(f=>`<tr><td>${ic(f.e,f.n)} ${esc(f.n)}${f.s<=LOW?' <span class="mode" style="background:#FDE5E6;color:var(--r)">menipis</span>':''}</td><td><input id="p${f.id}" type="number" min="1" value="${f.p}" style="width:120px" aria-label="Harga ${esc(f.n)}"></td><td><input id="s${f.id}" type="number" min="0" value="${f.s}" style="width:100px" aria-label="Stok ${esc(f.n)}"></td><td style="white-space:nowrap"><button class="ok" style="background:var(--o2);color:#b86500" onclick="editImg(${f.id})">Gambar</button> <button class="ok" onclick="upd(${f.id})">Simpan</button> <button class="del" onclick="delF(${f.id})">Hapus</button></td></tr>`).join('')+`</table></div>`;
+ fruits.map(f=>`<tr><td>${ic(f.e,f.n)} ${esc(f.n)}${f.s<=LOW?' <span class="mode" style="background:#FDE5E6;color:var(--r)">menipis</span>':''}</td><td><input id="p${f.id}" type="number" min="1" value="${f.p}" style="width:120px" aria-label="Harga ${esc(f.n)}"></td><td><input id="s${f.id}" type="number" step="any" min="0" value="${f.s}" style="width:100px" aria-label="Stok ${esc(f.n)}"></td><td style="white-space:nowrap"><button class="ok" style="background:var(--o2);color:#b86500" onclick="editImg(${f.id})">Gambar</button> <button class="ok" onclick="upd(${f.id})">Simpan</button> <button class="del" onclick="delF(${f.id})">Hapus</button></td></tr>`).join('')+`</table></div>`;
 }
 async function upd(id){
  const p=+$('p'+id).value,s=+$('s'+id).value;
@@ -332,14 +383,14 @@ async function upd(id){
  const r=await api('updateFruit',{id,p,s});toast(r.ok?'Tersimpan':r.error);if(r.ok)stok();
 }
 async function delF(id){const f=fr(id);if(!confirm('Hapus '+f.n+'?'))return;const r=await api('deleteFruit',{id});toast(r.ok?f.n+' dihapus':r.error);stok()}
-
+ 
 function editImg(id){
  const f=fr(id);pickE=f.e||'';pickN=f.n;
  $('modal').innerHTML=`<div class="rc"><h3>Gambar ${esc(f.n)}</h3>${picker()}<button class="btn" onclick="saveImg(${id})">Simpan gambar</button><button class="btn soft" onclick="closeM()">Batal</button></div>`;
  $('modal').classList.remove('hide');emoUI();
 }
 async function saveImg(id){const r=await api('updateFruit',{id,e:pickE});closeM();toast(r.ok?'Gambar tersimpan':r.error);if(r.ok)stok()}
-
+ 
 /* ====== LAPORAN ====== */
 async function laporan(){
  const r=await api('sales');if(!r.ok){toast(r.error);return}
@@ -356,9 +407,9 @@ async function laporan(){
  <div class="stat"><span>Buah terlaris</span><b>${best?esc(best[0]):'-'}</b></div></div>
  <h2>7 hari terakhir</h2><div class="chart">${days.map(d=>`<div title="${rp(d.v)}"><i style="height:${Math.round(d.v/mx*100)}%"></i>${d.l}</div>`).join('')}</div>
  <h2>Riwayat transaksi</h2><div class="wrap"><table><tr><th>Waktu</th><th>Kasir</th><th>Item</th><th>Total</th></tr>`+
- (sales.length?[...sales].reverse().slice(0,50).map(s=>`<tr><td>${new Date(s.t).toLocaleString('id-ID')}</td><td>${esc(s.by)}</td><td>${esc(s.items.map(i=>(i.e||i.n)+' '+i.q+'kg').join(', '))}</td><td><b>${rp(s.total)}</b></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Belum ada penjualan.</td></tr>')+`</table></div>`;
+ (sales.length?[...sales].reverse().slice(0,50).map(s=>`<tr><td>${new Date(s.t).toLocaleString('id-ID')}</td><td>${esc(s.by)}</td><td>${esc(s.items.map(i=>(i.e||i.n)+' '+fmt(i.q)+'kg').join(', '))}</td><td><b>${rp(s.total)}</b></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Belum ada penjualan.</td></tr>')+`</table></div>`;
 }
-
+ 
 /* ====== KARYAWAN ====== */
 async function staf(){
  const r=await api('users');if(!r.ok){toast(r.error);return}
@@ -376,3 +427,4 @@ async function delStaf(username){if(!confirm('Hapus akun '+username+'?'))return;
 </script>
 </body>
 </html>
+ 
