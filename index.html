@@ -124,7 +124,8 @@ nav em{font-style:normal}
 header{flex-wrap:nowrap}
 .brand{display:flex;align-items:center;gap:10px}
 .tile{width:36px;height:36px;border-radius:12px;background:var(--g2);display:grid;place-items:center;font-size:20px}
-.who{display:flex;align-items:center;gap:8px}
+.who{display:flex;align-items:center;gap:8px;background:none;padding:4px 8px 4px 4px;border-radius:99px;color:var(--mut);font-size:13px}
+.who:hover{background:var(--g2)}
 .av{width:34px;height:34px;border-radius:50%;background:var(--g);color:#fff;display:inline-grid;place-items:center;font-weight:800;font-size:14px}
 .out{display:flex;align-items:center;gap:6px}
 .wi{width:84px;padding:6px 8px;text-align:right;border-radius:10px}
@@ -155,7 +156,7 @@ header{flex-wrap:nowrap}
 </style>
 </head>
 <body>
- 
+
 <section id="login">
   <div class="art" aria-hidden="true">
     <span class="f f1">🥭</span><span class="f f2">🍉</span><span class="f f3">🍊</span><span class="f f4">🍓</span><span class="f f5">🍍</span>
@@ -183,26 +184,26 @@ header{flex-wrap:nowrap}
     </div>
   </div>
 </section>
- 
+
 <section id="app" class="hide">
   <header>
     <div class="brand"><span class="tile">🍉</span>Toko Buah Priyo</div>
     <nav id="nav"></nav>
-    <span class="who" id="who"></span>
+    <button class="who" id="who" onclick="pwSaya()" aria-label="Ganti sandi saya"></button>
     <button class="out" onclick="logout()" aria-label="Keluar"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span>Keluar</span></button>
   </header>
   <main id="main"></main>
 </section>
- 
+
 <div id="toast" class="toast hide" role="status"></div>
 <div id="modal" class="modal hide" onclick="if(event.target===this)closeM()"></div>
- 
+
 <script>
 /* ====== PENGATURAN ======
    Kosongkan API_URL untuk mode demo (data tersimpan di browser).
    Isi dengan URL Web App Google Apps Script agar data tersimpan di Google Sheets. */
 const API_URL='https://script.google.com/macros/s/AKfycbx3mgA_7U0uaYiEPQwnnBXP76GJ_9X3gEquIrnF2_BRy2Cpc6WhZNH9HUJ75XqiUf0/exec';
- 
+
 const DEF=[
  {id:1,n:'Mangga',e:'🥭',p:25000,s:40},{id:2,n:'Apel',e:'🍎',p:30000,s:35},{id:3,n:'Pisang',e:'🍌',p:15000,s:50},
  {id:4,n:'Jeruk',e:'🍊',p:20000,s:45},{id:5,n:'Semangka',e:'🍉',p:10000,s:60},{id:6,n:'Anggur',e:'🍇',p:55000,s:20},
@@ -217,10 +218,12 @@ const IC={riwayat:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',kasir
 const svg=k=>`<svg viewBox="0 0 24 24">${IC[k]}</svg>`;
 const isImg=e=>String(e||'').startsWith('data:image');
 const ic=(e,n)=>isImg(e)?`<span class="ic"><img src="${esc(e)}" alt=""></span>`:e?`<span class="ic">${esc(e)}</span>`:`<span class="ic l"><i>${esc(String(n||'?').trim().charAt(0).toUpperCase()||'?')}</i></span>`;
+const num=v=>+String(v||'').replace(/\D/g,'')||0;
+function fm(el){const n=num(el.value);el.value=n?n.toLocaleString('id-ID'):''}
 const rp=n=>'Rp '+Math.round(n).toLocaleString('id-ID');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(t){const e=$('toast');e.textContent=t;e.classList.remove('hide');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.add('hide'),2200)}
- 
+
 /* ====== LAPISAN DATA ====== */
 let DB=(()=>{try{const v=localStorage.getItem('kb_db');if(v)return JSON.parse(v)}catch(e){}
  return{fruits:DEF,sales:[],users:{pemilik:{pw:'owner123',peran:'pemilik',nama:'Pemilik'},karyawan:{pw:'staf123',peran:'karyawan',nama:'Karyawan'}}}})();
@@ -265,6 +268,8 @@ function local(a,d){
   if(String(d.password||'').length<6)return{ok:false,error:'Sandi minimal 6 karakter'};
   if(u[k])return{ok:false,error:'Nama pengguna sudah dipakai'};
   u[k]={pw:d.password,peran:'karyawan',nama:d.nama||k}}
+ else if(a==='changePassword'){const x=u[user.username];if(!x||x.pw!==d.lama)return{ok:false,error:'Sandi lama salah'};if(String(d.baru||'').length<6)return{ok:false,error:'Sandi baru minimal 6 karakter'};x.pw=d.baru}
+ else if(a==='resetPassword'){const x=u[d.username];if(!x||x.peran!=='karyawan')return{ok:false,error:'Akun karyawan tidak ditemukan'};if(String(d.password||'').length<6)return{ok:false,error:'Sandi minimal 6 karakter'};x.pw=d.password}
  else if(a==='deleteUser'){if(u[d.username]&&u[d.username].peran==='karyawan')delete u[d.username]}
  persist();return{ok:true};
 }
@@ -275,7 +280,7 @@ async function api(action,data={}){
   const j=await r.json();if(j.expired){logout();toast(j.error)}return j;
  }catch(e){return{ok:false,error:'Tidak bisa terhubung ke server. Periksa internet dan API_URL.'}}
 }
- 
+
 /* ====== LOGIN ====== */
 function setRole(r){role=r;$('rP').className=r==='pemilik'?'on':'';$('rK').className=r==='karyawan'?'on':'';$('u').value='';$('pw').value='';$('err').textContent=''}
 if(API_URL)$('hint').classList.add('hide');else $('hint').innerHTML='<b>Mode demo</b> (data hanya di browser ini).<br>Pemilik: <b>pemilik</b> / <b>owner123</b><br>Karyawan: <b>karyawan</b> / <b>staf123</b>';
@@ -284,7 +289,7 @@ async function doLogin(){
  const r=await api('login',{username:$('u').value,password:$('pw').value,peran:role});
  b.disabled=false;b.textContent='Masuk';
  if(!r.ok){$('err').textContent=r.error;return}
- token=r.token;user={nama:r.nama,peran:r.peran};tab='kasir';cart={};
+ token=r.token;user={nama:r.nama,peran:r.peran,username:$('u').value.trim().toLowerCase()};tab='kasir';cart={};
  $('login').classList.add('hide');$('app').classList.remove('hide');
  $('who').innerHTML='<span class="av">'+esc(r.nama.charAt(0).toUpperCase())+'</span><span class="wn">'+esc(r.nama)+' <span class="mode">'+(API_URL?'Online':'Demo')+'</span></span>';render();
 }
@@ -297,7 +302,7 @@ function nav(){
 }
 function go(t){tab=t;render()}
 function render(){nav();$('main').innerHTML='<p class="empty">Memuat…</p>';({kasir,tambah,stok,laporan,staf,riwayat})[tab]()}
- 
+
 /* ====== KASIR ====== */
 async function kasir(){
  const r=await api('fruits');if(!r.ok){toast(r.error);return}
@@ -330,16 +335,18 @@ function addW(id){
 }
 function setW(id,v){const f=fr(id),w=r3(v);if(!(w>0))delete cart[id];else if(w>f.s)toast('Stok '+f.n+' hanya '+fmt(f.s)+' kg');else cart[id]=w;grid();cartUI()}
 function total(){return Object.entries(cart).reduce((s,[id,q])=>s+Math.round(q*fr(id).p),0)}
+function bayarUI(){fm($('bayar'));const k=num($('bayar').value)-total();$('kb').textContent=num($('bayar').value)?(k>=0?'Kembalian '+rp(k):'Kurang '+rp(-k)):''}
+function setBayar(v){$('bayar').value=v.toLocaleString('id-ID');bayarUI()}
 function clearCart(){cart={};grid();cartUI()}
 function cartUI(){
  const ids=Object.keys(cart).filter(id=>fr(id)),el=$('cl'),fab=$('fab');if(!el)return;
  if(!ids.length){el.innerHTML='<div class="empty">Belum ada buah.<br>Klik gambar buah, lalu masukkan berat timbangan.</div>';if(fab)fab.classList.add('hide');return}
  el.innerHTML=ids.map(id=>{const f=fr(id),q=cart[id];return `<div class="row"><span class="e">${ic(f.e,f.n)}</span><div class="n">${esc(f.n)}<small>${rp(f.p)}/kg = ${rp(Math.round(q*f.p))}</small></div><div class="q"><input class="wi" type="number" step="0.001" min="0" inputmode="decimal" value="${q}" onchange="setW(${id},this.value)" aria-label="Berat ${esc(f.n)} (kg)"><span>kg</span><button onclick="setW(${id},0)" aria-label="Hapus ${esc(f.n)}">×</button></div></div>`}).join('')+
- `<div class="tot"><span>Total</span><span>${rp(total())}</span></div><label for="bayar">Uang diterima</label><input id="bayar" type="number" min="0" inputmode="numeric" placeholder="0"><button class="btn" id="pb" onclick="pay()">Bayar</button><button class="btn soft" onclick="clearCart()">Kosongkan</button>`;
+ `<div class="tot"><span>Total</span><span>${rp(total())}</span></div><label for="bayar">Uang diterima</label><input id="bayar" type="text" inputmode="numeric" placeholder="0" autocomplete="off" oninput="bayarUI()"><div class="chips"><button onclick="setBayar(total())">Uang pas</button><button onclick="setBayar(50000)">50.000</button><button onclick="setBayar(100000)">100.000</button></div><div id="kb" style="font-size:14px;font-weight:600;color:var(--mut);min-height:20px"></div><button class="btn" id="pb" onclick="pay()">Bayar</button><button class="btn soft" onclick="clearCart()">Kosongkan</button>`;
  if(fab){fab.classList.remove('hide');fab.innerHTML=`<span>${ids.length} jenis buah</span><b>${rp(total())}</b><span>Lihat keranjang</span>`}
 }
 async function pay(){
- if(busy)return;const t=total(),b=+$('bayar').value;
+ if(busy)return;const t=total(),b=num($('bayar').value);
  if(!(b>=t)){toast('Uang diterima kurang dari total');return}
  busy=true;$('pb').disabled=true;$('pb').textContent='Memproses…';
  const r=await api('sell',{items:Object.entries(cart).map(([id,q])=>({id:+id,q})),bayar:b});
@@ -354,7 +361,7 @@ function receipt(s){
  $('modal').classList.remove('hide');
 }
 function closeM(){$('modal').classList.add('hide')}
- 
+
 /* ====== TAMBAH BUAH ====== */
 function picker(){return `<label>Gambar buah</label><div class="prev" id="prev"></div><div class="emo" id="emo"></div>
  <div class="two"><div><label for="ce">Atau ketik emoji sendiri</label><input id="ce" placeholder="🥭" maxlength="4" oninput="if(this.value.trim()){pickE=this.value.trim();emoUI()}"></div>
@@ -390,7 +397,7 @@ async function saveFruit(){
  if(!r.ok){toast(r.error);return}
  toast(n+' ditambahkan');tab='kasir';render();
 }
- 
+
 /* ====== STOK ====== */
 async function stok(){
  const r=await api('fruits');if(!r.ok){toast(r.error);return}fruits=r.fruits;
@@ -403,14 +410,14 @@ async function upd(id){
  const r=await api('updateFruit',{id,p,s});toast(r.ok?'Tersimpan':r.error);if(r.ok)stok();
 }
 async function delF(id){const f=fr(id);if(!confirm('Hapus '+f.n+'?'))return;const r=await api('deleteFruit',{id});toast(r.ok?f.n+' dihapus':r.error);stok()}
- 
+
 function editImg(id){
  const f=fr(id);pickE=f.e||'';pickN=f.n;
  $('modal').innerHTML=`<div class="rc"><h3>Gambar ${esc(f.n)}</h3>${picker()}<button class="btn" onclick="saveImg(${id})">Simpan gambar</button><button class="btn soft" onclick="closeM()">Batal</button></div>`;
  $('modal').classList.remove('hide');emoUI();
 }
 async function saveImg(id){const r=await api('updateFruit',{id,e:pickE});closeM();toast(r.ok?'Gambar tersimpan':r.error);if(r.ok)stok()}
- 
+
 /* ====== LAPORAN ====== */
 async function laporan(){
  const r=await api('sales');if(!r.ok){toast(r.error);return}
@@ -429,7 +436,7 @@ async function laporan(){
  <h2>Riwayat transaksi</h2><div class="wrap"><table><tr><th>Waktu</th><th>Kasir</th><th>Item</th><th>Total</th><th></th></tr>`+
  (sales.length?[...sales].reverse().slice(0,50).map(s=>`<tr><td>${new Date(s.t).toLocaleString('id-ID')}</td><td>${esc(s.by)}</td><td>${esc(s.items.map(i=>(i.e||i.n)+' '+fmt(i.q)+'kg').join(', '))}</td><td><b>${rp(s.total)}</b></td><td><button class="ok" onclick="editSale(${s.id})">Edit</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">Belum ada penjualan.</td></tr>')+`</table></div>`;
 }
- 
+
 /* ====== EDIT TRANSAKSI ====== */
 let SALES=[],ED=null;
 const edTotal=()=>ED.items.reduce((t,i)=>t+Math.round(i.q*i.p),0);
@@ -443,13 +450,13 @@ function edUI(){
  $('modal').innerHTML=`<div class="rc" style="max-width:420px"><h3>Edit transaksi</h3><p style="text-align:center;color:var(--mut);font-size:12px;margin:0 0 10px">${new Date(ED.t).toLocaleString('id-ID')} · ${esc(ED.by)}</p>`+
  ED.items.map((i,k)=>`<div class="row"><span class="e">${ic(i.e,i.n)}</span><div class="n">${esc(i.n)}<small>${rp(i.p)}/kg = ${rp(Math.round(i.q*i.p))}</small></div><div class="q"><input class="wi" type="number" step="0.001" min="0" inputmode="decimal" value="${i.q}" onchange="edQ(${k},this.value)" aria-label="Berat ${esc(i.n)} (kg)"><span>kg</span><button onclick="edQ(${k},0)" aria-label="Hapus ${esc(i.n)}">×</button></div></div>`).join('')+
  (opts.length?`<label for="ea">Tambah buah</label><div style="display:flex;gap:8px"><select id="ea">${opts.map(f=>`<option value="${f.id}">${esc(f.n)}</option>`).join('')}</select><button class="ok" onclick="edAdd()">Tambah</button></div>`:'')+
- `<div class="tot"><span>Total</span><span>${rp(edTotal())}</span></div><label for="eb">Uang diterima</label><input id="eb" type="number" min="0" inputmode="numeric" value="${ED.bayar}"><button class="btn" onclick="saveEd()">Simpan perubahan</button><button class="btn soft" onclick="closeM()">Batal</button><button class="btn" style="background:#FDE5E6;color:var(--r)" onclick="delEd()">Hapus transaksi</button></div>`;
+ `<div class="tot"><span>Total</span><span>${rp(edTotal())}</span></div><label for="eb">Uang diterima</label><input id="eb" type="text" inputmode="numeric" value="${Number(ED.bayar).toLocaleString('id-ID')}" oninput="fm(this)"><button class="btn" onclick="saveEd()">Simpan perubahan</button><button class="btn soft" onclick="closeM()">Batal</button><button class="btn" style="background:#FDE5E6;color:var(--r)" onclick="delEd()">Hapus transaksi</button></div>`;
  $('modal').classList.remove('hide');
 }
-function edQ(k,v){const w=r3(v);if(isNaN(w))return;ED.bayar=+$('eb').value;if(w>0)ED.items[k].q=w;else ED.items.splice(k,1);edUI()}
-function edAdd(){const f=fr($('ea').value);if(!f)return;ED.bayar=+$('eb').value;ED.items.push({n:f.n,e:isImg(f.e)?'':f.e,q:1,p:f.p,id:f.id});edUI()}
+function edQ(k,v){const w=r3(v);if(isNaN(w))return;ED.bayar=num($('eb').value);if(w>0)ED.items[k].q=w;else ED.items.splice(k,1);edUI()}
+function edAdd(){const f=fr($('ea').value);if(!f)return;ED.bayar=num($('eb').value);ED.items.push({n:f.n,e:isImg(f.e)?'':f.e,q:1,p:f.p,id:f.id});edUI()}
 async function saveEd(){
- const r=await api('updateSale',{id:ED.id,items:ED.items.map(({n,q,id})=>({n,q,id})),bayar:+$('eb').value});
+ const r=await api('updateSale',{id:ED.id,items:ED.items.map(({n,q,id})=>({n,q,id})),bayar:num($('eb').value)});
  if(!r.ok){toast(r.error);return}
  closeM();toast('Transaksi diperbarui');reload();
 }
@@ -459,7 +466,7 @@ async function delEd(){
  if(!r.ok){toast(r.error);return}
  closeM();toast('Transaksi dihapus');reload();
 }
- 
+
 const reload=()=>tab==='riwayat'?riwayat():laporan();
 async function riwayat(){
  const r=await api('mySales');if(!r.ok){toast(r.error);return}
@@ -467,7 +474,7 @@ async function riwayat(){
  $('main').innerHTML=`<h2>Riwayat penjualan saya</h2><p style="color:var(--mut);font-size:14px;margin:-6px 0 14px">Salah input? Transaksi bisa diedit sampai ${r.editMenit} menit setelah dibuat. Setelah itu, minta pemilik yang mengubahnya.</p>`+
  (SALES.length?[...SALES].reverse().map(s=>{const ok=now-new Date(s.t)<=r.editMenit*60000;return `<div class="tx"><div class="i"><b>${rp(s.total)}</b><small>${new Date(s.t).toLocaleString('id-ID')}</small><small>${esc(s.items.map(i=>(i.e||i.n)+' '+fmt(i.q)+'kg').join(', '))}</small></div>${ok?`<button class="ok" onclick="editSale(${s.id})">Edit</button>`:'<small>Lewat batas edit</small>'}</div>`}).join(''):'<p class="empty">Belum ada penjualan dalam 24 jam terakhir.</p>');
 }
- 
+
 /* ====== KARYAWAN ====== */
 async function staf(){
  const r=await api('users');if(!r.ok){toast(r.error);return}
@@ -475,14 +482,37 @@ async function staf(){
  <div class="two"><div><label for="su">Nama pengguna</label><input id="su" autocapitalize="none"></div><div><label for="sp">Kata sandi (min. 6)</label><input id="sp" type="password"></div></div>
  <button class="btn" onclick="addStaf()">Tambah karyawan</button></div>
  <div class="wrap"><table><tr><th>Nama</th><th>Pengguna</th><th>Peran</th><th></th></tr>`+
- r.users.map(u=>`<tr><td>${esc(u.nama)}</td><td>${esc(u.username)}</td><td>${esc(u.peran)}</td><td>${u.peran==='karyawan'?`<button class="del" onclick="delStaf('${esc(u.username)}')">Hapus</button>`:''}</td></tr>`).join('')+`</table></div>`;
+ r.users.map(u=>`<tr><td>${esc(u.nama)}</td><td>${esc(u.username)}</td><td>${esc(u.peran)}</td><td style="white-space:nowrap">${u.peran==='karyawan'?`<button class="ok" onclick="pwStaf('${esc(u.username)}')">Ganti sandi</button> <button class="del" onclick="delStaf('${esc(u.username)}')">Hapus</button>`:''}</td></tr>`).join('')+`</table></div>`;
 }
 async function addStaf(){
  const r=await api('addUser',{nama:$('sn').value.trim(),username:$('su').value,password:$('sp').value});
  toast(r.ok?'Karyawan ditambahkan':r.error);if(r.ok)staf();
 }
+function pwSaya(){
+ $('modal').innerHTML=`<div class="rc"><h3>Ganti sandi saya</h3><p style="text-align:center;color:var(--mut);font-size:13px;margin:0 0 4px">Masuk sebagai <b>${esc(user.nama)}</b></p>
+ <label for="sl">Sandi lama</label><input id="sl" type="password" autocomplete="current-password">
+ <label for="sb">Sandi baru (min. 6 karakter)</label><input id="sb" type="password" autocomplete="new-password">
+ <label for="sk">Ulangi sandi baru</label><input id="sk" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')saveMyPw()">
+ <button class="btn" onclick="saveMyPw()">Simpan sandi baru</button><button class="btn soft" onclick="closeM()">Batal</button></div>`;
+ $('modal').classList.remove('hide');$('sl').focus();
+}
+async function saveMyPw(){
+ const l=$('sl').value,b=$('sb').value;
+ if(b.length<6){toast('Sandi baru minimal 6 karakter');return}
+ if(b!==$('sk').value){toast('Ulangi sandi baru tidak sama');return}
+ const r=await api('changePassword',{lama:l,baru:b});
+ if(!r.ok){toast(r.error);return}
+ closeM();toast('Sandi berhasil diganti');
+}
+function pwStaf(username){
+ $('modal').innerHTML=`<div class="rc"><h3>Ganti sandi</h3><p style="text-align:center;color:var(--mut);font-size:13px;margin:0 0 8px">Akun: <b>${esc(username)}</b>. Sandi lama tidak bisa dilihat karena disimpan terenkripsi. Buat sandi baru lalu beritahukan ke karyawan.</p>
+ <label for="np">Sandi baru (min. 6 karakter)</label><input id="np" type="text" autocomplete="off" autocapitalize="none">
+ <button class="btn soft" onclick="$('np').value=Math.random().toString(36).slice(2,10)">Buat sandi acak</button>
+ <button class="btn" onclick="savePw('${esc(username)}')">Simpan sandi baru</button><button class="btn soft" onclick="closeM()">Batal</button></div>`;
+ $('modal').classList.remove('hide');$('np').focus();
+}
+async function savePw(username){const r=await api('resetPassword',{username,password:$('np').value});if(!r.ok){toast(r.error);return}closeM();toast('Sandi diganti')}
 async function delStaf(username){if(!confirm('Hapus akun '+username+'?'))return;const r=await api('deleteUser',{username});toast(r.ok?'Akun dihapus':r.error);staf()}
 </script>
 </body>
 </html>
- 
